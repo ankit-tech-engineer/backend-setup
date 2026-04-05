@@ -1,0 +1,26 @@
+const mongoose = require('mongoose');
+const Counter = require('../../../core/models/counter.model');
+const { STATUS } = require('../../../constants/enums');
+
+const actionSchema = new mongoose.Schema(
+  {
+    id: { type: Number, unique: true },
+    name: { type: String, required: true, trim: true },
+    key: { type: String, required: true, trim: true, unique: true, lowercase: true },
+    status: { type: String, enum: Object.values(STATUS), default: STATUS.ACTIVE },
+    isDeleted: { type: Boolean, default: false },
+  },
+  { timestamps: true, id: false }
+);
+
+actionSchema.pre('save', async function (next) {
+  if (this.isNew) {
+    this.id = await Counter.getNextId('actions');
+    if (!this.key) {
+      this.key = this.name.toLowerCase().trim().replace(/\s+/g, '_');
+    }
+  }
+  next();
+});
+
+module.exports = mongoose.model('Action', actionSchema);
