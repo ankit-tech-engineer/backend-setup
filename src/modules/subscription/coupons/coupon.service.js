@@ -1,4 +1,5 @@
 const Coupon = require('./coupon.model');
+const CouponUsage = require('./couponUsage.model');
 const AppError = require('../../../core/error/AppError');
 const httpStatus = require('../../../constants/httpStatus');
 const { parseQueryOptions, paginatedResponse } = require('../../../utils/pagination');
@@ -77,6 +78,17 @@ const validateCoupon = async (code, amount) => {
     return { coupon, discount };
 };
 
+const logUsage = async (couponId, vendorId, subscriptionId, discountAmount, tenantKey) => {
+    await Coupon.updateOne({ id: couponId }, { $inc: { usedCount: 1 } });
+    return CouponUsage.create({
+        couponId,
+        vendorId,
+        subscriptionId,
+        discountAmount,
+        tenantKey
+    });
+};
+
 module.exports = {
     createCoupon,
     getCoupons,
@@ -84,4 +96,5 @@ module.exports = {
     updateCoupon,
     deleteCoupon,
     validateCoupon,
+    logUsage,
 };

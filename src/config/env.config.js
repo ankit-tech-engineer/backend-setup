@@ -18,6 +18,7 @@ const schema = z.object({
   SMTP_FROM: z.string().min(1),
   REDIS_HOST: z.string().default('127.0.0.1'),
   REDIS_PORT: z.coerce.number().default(6379),
+  REDIS_PASSWORD: z.string().default(''),
   RAZOR_PAY_API_KEY: z.string().min(1),
   RAZOR_PAY_SECRET_KEY: z.string().min(1),
   RAZOR_PAY_WEBHOOK_SECRET: z.string().default('2VdkF7r7jdysV@N'),

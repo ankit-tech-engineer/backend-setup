@@ -9,12 +9,19 @@ const router = express.Router();
 
 router.use(authenticate);
 
-router.get('/', checkPermission('subscriptions', 'list'), subscriptionController.getSubscriptions);
-router.get('/active', subscriptionController.getActiveSubscription);
+// Public/Vendor endpoints
+router.get('/active', checkPermission('subscriptions', 'read'), subscriptionController.getActiveSubscription);
+router.get('/entitlements', checkPermission('subscriptions', 'read'), subscriptionController.getEntitlements);
 router.get('/history', checkPermission('subscriptions', 'list'), subscriptionController.getSubscriptionHistory);
 
+// Payment endpoints (5-step flow)
 router.post('/purchase', checkPermission('subscriptions', 'create'), validate(subscriptionValidation.purchasePlan), subscriptionController.purchasePlan);
 router.post('/renew', checkPermission('subscriptions', 'update'), validate(subscriptionValidation.renewPlan), subscriptionController.renewPlan);
 router.post('/upgrade', checkPermission('subscriptions', 'update'), validate(subscriptionValidation.upgradePlan), subscriptionController.upgradePlan);
+router.post('/verify', validate(subscriptionValidation.verifyPayment), subscriptionController.verifyPayment);
+
+// Admin endpoints
+router.get('/', checkPermission('subscriptions', 'list'), subscriptionController.getSubscriptions);
+router.post('/manual-assign', checkPermission('subscriptions', 'create'), validate(subscriptionValidation.manualAssign), subscriptionController.manualAssign);
 
 module.exports = router;

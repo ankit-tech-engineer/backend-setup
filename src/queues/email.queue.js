@@ -3,9 +3,18 @@ const { env } = require('../config/env.config');
 const { sendMail } = require('../utils/mailer');
 const logger = require('../utils/logger');
 
-const connection = { host: env.REDIS_HOST, port: env.REDIS_PORT };
+const connection = { 
+  host: env.REDIS_HOST, 
+  port: env.REDIS_PORT,
+  password: env.REDIS_PASSWORD 
+};
 
 const emailQueue = new Queue('email', { connection });
+
+emailQueue.waitUntilReady().then(() => {
+  logger.info('[BullMQ]: Connected to Redis Cloud');
+  console.log('[BullMQ]: Connected to Redis Cloud');
+});
 
 const startEmailWorker = () => {
   const worker = new Worker(

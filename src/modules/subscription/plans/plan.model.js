@@ -9,8 +9,8 @@ const planSchema = new mongoose.Schema(
         description: { type: String, trim: true },
         price: { type: Number, required: true, min: 0 },
         validityDays: { type: Number, required: true, min: 1 },
-        features: [{ type: Number, ref: 'Feature', required: true }],
-        limits: { type: mongoose.Schema.Types.Mixed, default: {} },
+        features: [{ type: Number, ref: 'Feature' }], // Array of Feature IDs
+        limits: { type: mongoose.Schema.Types.Mixed, default: {} }, // e.g. { users: 5, storage: 10GB }
         isTrial: { type: Boolean, default: false },
         status: { type: String, enum: Object.values(STATUS), default: STATUS.ACTIVE },
         isDeleted: { type: Boolean, default: false },

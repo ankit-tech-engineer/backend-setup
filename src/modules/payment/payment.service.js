@@ -60,7 +60,17 @@ const createOrder = async (amount, vendor, metadata = {}) => {
 const verifySignature = async (details) => {
   const { razorpayOrderId, razorpayPaymentId, razorpaySignature } = details;
 
-  const text = `${razorpayOrderId}|${razorpayPaymentId}`;
+  let text = `${razorpayOrderId}|${razorpayPaymentId}`;
+
+  // If it's a Payment Link signature, use the 4-field formula: link_id|ref_id|status|payment_id
+  if (razorpayOrderId.startsWith('plink_')) {
+    const { razorpayPaymentLinkReferenceId, razorpayPaymentLinkStatus } = details;
+    if (!razorpayPaymentLinkReferenceId || !razorpayPaymentLinkStatus) {
+      throw new AppError('Payment Link reference ID and status are required for verification.', httpStatus.BAD_REQUEST);
+    }
+    text = `${razorpayOrderId}|${razorpayPaymentLinkReferenceId}|${razorpayPaymentLinkStatus}|${razorpayPaymentId}`;
+  }
+
   const generatedSignature = crypto
     .createHmac('sha256', env.RAZOR_PAY_SECRET_KEY)
     .update(text)
@@ -72,7 +82,13 @@ const verifySignature = async (details) => {
     // Update record to FAILED
     await Payment.findOneAndUpdate(
       { razorpayOrderId },
-      { status: 'FAILED', razorpayPaymentId, razorpaySignature }
+      { 
+        status: 'FAILED', 
+        razorpayPaymentId, 
+        razorpaySignature,
+        razorpayPaymentLinkReferenceId: details.razorpayPaymentLinkReferenceId,
+        razorpayPaymentLinkStatus: details.razorpayPaymentLinkStatus
+      }
     );
     throw new AppError('Invalid payment signature. Payment verification failed.', httpStatus.BAD_REQUEST);
   }
@@ -80,7 +96,13 @@ const verifySignature = async (details) => {
   // Update record to SUCCESS
   const payment = await Payment.findOneAndUpdate(
     { razorpayOrderId },
-    { status: 'SUCCESS', razorpayPaymentId, razorpaySignature },
+    { 
+      status: 'SUCCESS', 
+      razorpayPaymentId, 
+      razorpaySignature,
+      razorpayPaymentLinkReferenceId: details.razorpayPaymentLinkReferenceId,
+      razorpayPaymentLinkStatus: details.razorpayPaymentLinkStatus
+    },
     { new: true }
   );
 
@@ -125,10 +147,10 @@ const createPaymentLink = async (amount, vendor, metadata = {}, callbackUrl) => 
   try {
     const response = await razorpay.paymentLink.create(options);
 
-    // Save PENDING payment record with reference_id instead of orderId if needed
-    // Actually, Payment Links create an order in the background, but response has id (plink_id)
+    // Save PENDING payment record with reference_id
     const payment = await Payment.create({
-      razorpayOrderId: response.id, // Store plink_id as orderId for searchability
+      razorpayOrderId: response.id, // Stores plink_id as orderId
+      razorpayPaymentLinkReferenceId: options.reference_id,
       amount: amount,
       vendorId: vendor.id,
       tenantKey: vendor.tenantKey,

@@ -6,9 +6,8 @@ const { sendSuccess } = require('../../../core/response/responseHandler');
 const purchasePlan = asyncHandler(async (req, res) => {
     const { planId, couponCode, callbackUrl } = req.body;
     const vendorId = req.user.vendorId;
-    console.log(req.user);
     
-    // Returns Razorpay Payment Link
+    // Returns Razorpay Payment Link (short_url)
     const linkData = await subscriptionService.initiatePurchase(vendorId, planId, couponCode, callbackUrl);
     
     sendSuccess(res, {
@@ -41,6 +40,40 @@ const upgradePlan = asyncHandler(async (req, res) => {
         statusCode: httpStatus.OK,
         message: 'Upgrade payment link generated successfully.',
         data: linkData,
+    });
+});
+
+const verifyPayment = asyncHandler(async (req, res) => {
+    const subscription = await subscriptionService.verifySubscriptionPayment(req.body);
+    
+    sendSuccess(res, {
+        statusCode: httpStatus.OK,
+        message: 'Payment verified and subscription activated successfully.',
+        data: subscription,
+    });
+});
+
+const manualAssign = asyncHandler(async (req, res) => {
+    const { vendorId, planId } = req.body;
+    const moderatorId = req.user.id;
+    
+    const subscription = await subscriptionService.manualAssignPlan(vendorId, planId, moderatorId);
+    
+    sendSuccess(res, {
+        statusCode: httpStatus.OK,
+        message: 'Plan assigned manually by admin.',
+        data: subscription,
+    });
+});
+
+const getEntitlements = asyncHandler(async (req, res) => {
+    const vendorId = req.user.vendorId;
+    const entitlements = await subscriptionService.getEntitlements(vendorId);
+    
+    sendSuccess(res, {
+        statusCode: httpStatus.OK,
+        message: 'Feature entitlements fetched successfully.',
+        data: entitlements,
     });
 });
 
@@ -82,6 +115,9 @@ module.exports = {
     purchasePlan,
     renewPlan,
     upgradePlan,
+    verifyPayment,
+    manualAssign,
+    getEntitlements,
     getSubscriptions,
     getActiveSubscription,
     getSubscriptionHistory,
