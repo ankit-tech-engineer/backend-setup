@@ -7,6 +7,9 @@ const httpStatus = require('./constants/httpStatus');
 
 const app = express();
 
+// Trust proxy for Render/Load Balancers to get real client IP
+app.set('trust proxy', 1);
+
 configureApp(app);
 
 app.use('/api/v1', routes);
