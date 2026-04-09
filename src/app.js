@@ -11,6 +11,14 @@ configureApp(app);
 
 app.use('/api/v1', routes);
 
+app.get('/', (req, res) => {
+  res.status(200).json({
+    status: 'success',
+    message: 'Welcome to the SaaS API. The server is healthy and running.',
+    timestamp: new Date().toISOString()
+  });
+});
+
 app.all('*', (req, res, next) => {
   next(new AppError(`Route ${req.originalUrl} not found`, httpStatus.NOT_FOUND));
 });
