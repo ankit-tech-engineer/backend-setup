@@ -2,18 +2,11 @@ const nodemailer = require('nodemailer');
 const { env } = require('../config/env.config');
 
 const transporter = nodemailer.createTransport({
-  host: env.SMTP_HOST,
-  port: env.SMTP_PORT,
-  secure: env.SMTP_PORT === 465,
+  service: 'gmail',
   auth: { user: env.SMTP_USER, pass: env.SMTP_PASS },
-  tls: {
-    rejectUnauthorized: false, // Helps with some cloud network restrictions
-  },
-  connectionTimeout: 10000,
-  greetingTimeout: 10000,
-  socketTimeout: 30000,
-  family: 4, // Force IPv4 to resolve ENETUNREACH IPv6 errors
+  family: 4, // Still force IPv4
 });
+
 
 
 // Verify connection on startup
