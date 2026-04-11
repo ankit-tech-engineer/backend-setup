@@ -1,6 +1,13 @@
 const nodemailer = require('nodemailer');
 const dns = require('dns');
+
+// Global override to prioritize IPv4 over IPv6
+if (dns.setDefaultResultOrder) {
+  dns.setDefaultResultOrder('ipv4first');
+}
+
 const { env } = require('../config/env.config');
+
 
 const transporter = nodemailer.createTransport({
   host: 'smtp.gmail.com',
