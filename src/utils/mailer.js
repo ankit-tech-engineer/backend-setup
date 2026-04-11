@@ -10,22 +10,21 @@ const { env } = require('../config/env.config');
 
 
 const transporter = nodemailer.createTransport({
-  host: 'smtp.gmail.com',
+  // Hardcoded IPv4 for Gmail to bypass Render's broken DNS
+  host: '173.194.76.108', 
   port: 465,
   secure: true,
   pool: true,
   auth: { user: env.SMTP_USER, pass: env.SMTP_PASS },
-  // Force DNS to use IPv4 only to resolve ENETUNREACH on Render
-  lookup: (hostname, options, callback) => {
-    dns.lookup(hostname, { family: 4 }, callback);
-  },
   tls: {
+    servername: 'smtp.gmail.com',
     rejectUnauthorized: false,
   },
   connectionTimeout: 20000,
   greetingTimeout: 20000,
   socketTimeout: 30000,
 });
+
 
 
 
