@@ -9,10 +9,12 @@ const transporter = nodemailer.createTransport({
   tls: {
     rejectUnauthorized: false, // Helps with some cloud network restrictions
   },
-  connectionTimeout: 10000, // 10s
-  greetingTimeout: 10000,   // 10s
-  socketTimeout: 30000,     // 30s
+  connectionTimeout: 10000,
+  greetingTimeout: 10000,
+  socketTimeout: 30000,
+  family: 4, // Force IPv4 to resolve ENETUNREACH IPv6 errors
 });
+
 
 // Verify connection on startup
 transporter.verify((error, success) => {
