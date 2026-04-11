@@ -1,4 +1,5 @@
 const nodemailer = require('nodemailer');
+const dns = require('dns');
 const { env } = require('../config/env.config');
 
 const transporter = nodemailer.createTransport({
@@ -7,14 +8,18 @@ const transporter = nodemailer.createTransport({
   secure: true,
   pool: true,
   auth: { user: env.SMTP_USER, pass: env.SMTP_PASS },
+  // Force DNS to use IPv4 only to resolve ENETUNREACH on Render
+  lookup: (hostname, options, callback) => {
+    dns.lookup(hostname, { family: 4 }, callback);
+  },
   tls: {
     rejectUnauthorized: false,
   },
   connectionTimeout: 20000,
   greetingTimeout: 20000,
   socketTimeout: 30000,
-  family: 4,
 });
+
 
 
 
